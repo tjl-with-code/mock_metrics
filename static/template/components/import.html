@@ -1,0 +1,56 @@
+{[{ define "import" }]}
+<el-main>
+    <el-collapse v-model="activeName" accordion>
+        <el-collapse-item title="从文本导入" name="1">
+            <div style="margin-bottom: 10px;">
+                <el-row align='middle' :gutter="20">
+                    <el-col :span=1>
+                        Domain:
+                    </el-col>
+                    <el-col :span=6>
+                        <el-autocomplete @select="handleSelect" placeholder="domain" v-model="context" type="text" :fetch-suggestions="querySearchAsync"></el-autocomplete>
+                    </el-col>
+                </el-row>
+            </div>
+            <el-row align="middle">
+                <el-col :span=1>
+                    Metrics:
+                </el-col>
+                <el-col :span=15>
+                    <el-input v-model="textarea2" :autosize="{ minRows: 10, maxRows: 20 }" type="textarea" placeholder="请输入指标">
+                    </el-input>
+                </el-col>
+                <el-col :span=4 align="middle" justify="center" type="flex">
+                    <el-button type="success" @click="TextImport(false)">追加</el-button>
+                    <el-button type="success" @click="TextImport(true)">清空并导入</el-button>
+                </el-col>
+            </el-row>
+        </el-collapse-item>
+        <el-collapse-item title="从url导入" name="2">
+            <div style="margin-bottom: 10px;">
+                <el-row align='middle' :gutter="20">
+                    <el-col :span=1>
+                        Domain:
+                    </el-col>
+                    <el-col :span=6>
+                        <el-autocomplete @select="handleSelect" placeholder="domain" v-model="contextUrl" type="text" :fetch-suggestions="querySearchAsync"></el-autocomplete>
+                    </el-col>
+                </el-row>
+            </div>
+            <el-row align='middle' :gutter="20">
+                <el-col :span=1>
+                    Url:
+                </el-col>
+                <el-col :span=15>
+                    <el-input v-model="input" placeholder="输入exporter或者prometheus的地址" clearable />
+                </el-col>
+                <el-col :span=8>
+                    <el-button @click="TestQuery">测试请求</el-button>
+                    <el-button type="success" @click="QueryMetrics(false)">追加</el-button>
+                    <el-button type="success" @click="QueryMetrics(true)">清空并导入</el-button>
+                </el-col>
+            </el-row>
+        </el-collapse-item>
+    </el-collapse>
+</el-main>
+{[{ end }]}

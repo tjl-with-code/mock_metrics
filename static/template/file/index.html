@@ -1,0 +1,335 @@
+<html>
+
+<head>
+    <title>fake-metrics</title>
+    {[{ template "common" .}]}
+</head>
+
+<body>
+    <div id="cc">
+        <el-container style="height:100%">
+            <el-aside style="background-color: rgb(238, 241, 246)">
+                <el-menu :default-openeds="['1']">
+                    <el-menu-item index="1-1" @click="currentPage=1">导入指标</el-menu-item>
+                    <el-menu-item index="1-2" @click="currentPage=2">设置指标值</el-menu-item>
+                    <el-menu-item index="1-3" @click="currentPage=3">修改指标值</el-menu-item>
+                </el-menu>
+            </el-aside>
+            <el-container>
+                <el-header>
+                    <el-row type="flex" justify="center" align="middle">
+                        <p style="font-size: 20px;">{{ currentPageTitle }}</p>
+                    </el-row>
+                </el-header>
+                <component v-bind:is="currentPageComponent"></component>
+                <el-footer>
+                    <el-row type="flex" justify="center" align="middle">
+                        <p style="font-size: 10px;">Design by GGQ</p>
+                    </el-row>
+                </el-footer>
+            </el-container>
+        </el-container>
+    </div>
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    message: "Hello Element Plus",
+                    activeName: "1",
+                    currentPage: "1",
+                };
+            },
+            methods: {
+                test() {
+                    axios.get("/test").then((res) => {
+                        console.log(this)
+                        console.log(res)
+                        this.message = res.data.test
+                    })
+                }
+            },
+            setup() {
+                return {
+
+                }
+            },
+            computed: {
+                currentPageTitle() {
+                    if (this.currentPage == 1) {
+                        return "导入指标"
+                    } else if (this.currentPage == 2) {
+                        return "设置指标值"
+                    } else if (this.currentPage == 3) {
+                        return "修改指标值"
+                    }
+                },
+                currentPageComponent() {
+                    if (this.currentPage == 1) {
+                        return "import-metrics"
+                    } else if (this.currentPage == 2) {
+                        return "set-metrics"
+                    } else if (this.currentPage == 3) {
+                        return "update-metrics"
+                    }
+                }
+            }
+        });
+        app.use(ElementPlus);
+
+
+        app.component("import-metrics", {
+            data() {
+                return {
+                    activeName: "1",
+                    input: "",
+                    context: Vue.ref(""),
+                    textarea2: Vue.ref(''),
+                    contextList: [],
+                    contextUrl: Vue.ref(""),
+                }
+            },
+            methods: {
+                TextImport(is_reset) {
+                    console.log(is_reset)
+                    const loading = ElementPlus.ElLoading.service({
+                        lock: true,
+                        text: 'Loading',
+                        background: 'rgba(0, 0, 0, 0.7)',
+                    })
+                    console.log(this.textarea2)
+                    context = this.context
+                    if (context === "默认" || context === "") {
+                        context = "default"
+                    }
+                    axios.post(`/metric/${context}/parse`, {
+                        "text": this.textarea2,
+                        "is_reset": is_reset,
+                    }).then((res) => {
+                        loading.close()
+                        console.log(res)
+                        ElementPlus.ElMessageBox.alert(res.data, '导入结果', {
+                            confirmButtonText: 'OK',
+                            dangerouslyUseHTMLString: true,
+                        })
+                    })
+                },
+                TestQuery() {
+                    const loading = ElementPlus.ElLoading.service({
+                        lock: true,
+                        text: 'Loading',
+                        background: 'rgba(0, 0, 0, 0.7)',
+                    })
+                    axios.post(`/metric/testquery/testQuery`, this.input).then((res) => {
+                        console.log(res)
+                        loading.close()
+                        ElementPlus.ElMessageBox.alert(res.data, '请求结果的前五行', {
+                            confirmButtonText: 'OK',
+                            dangerouslyUseHTMLString: true,
+                        })
+                    })
+                },
+                QueryMetrics(is_reset) {
+                    const loading = ElementPlus.ElLoading.service({
+                        lock: true,
+                        text: 'Loading',
+                        background: 'rgba(0, 0, 0, 0.7)',
+                    })
+                    context = this.contextUrl
+                    if (context === "默认" || context === "") {
+                        context = "default"
+                    }
+                    axios.post(`/metric/${context}/Query`, {
+                        "text": this.input,
+                        "is_reset": is_reset,
+                    }).then((res) => {
+                        loading.close()
+                        ElementPlus.ElMessageBox.alert(res.data, '导入结果', {
+                            confirmButtonText: 'OK',
+                            dangerouslyUseHTMLString: true,
+                        })
+                    })
+                },
+                querySearchAsync(input, cb) {
+                    this.LoaderContextList()
+                    dataList = this.contextList
+                    res = input ? dataList.filter(this.createFilter(input)) : dataList;
+                    console.log(res)
+                    cb(res)
+                },
+                createFilter(queryString) {
+                    return (ss) => {
+                        return (ss.value.toLowerCase().indexOf(queryString.toLowerCase()) === 0);
+                    };
+                },
+                handleSelect(item) {
+                    console.log(item);
+                },
+                LoaderContextList() {
+                    axios.get("/context/list").then((res) => {
+                        console.log(res.data)
+                        this.contextList = res.data.map((item) => {
+                            return {
+                                value: item,
+                            }
+                        })
+                        this.contextList.unshift({
+                            value: "默认",
+                            label: "默认",
+                        })
+                    })
+                }
+            },
+            mounted() {
+                this.LoaderContextList()
+            },
+            template: `{[{ template "import" .}]}`
+        })
+        app.component("set-metrics", {
+            data() {
+                return {
+                    metricsData: Vue.ref([]),
+                    contextList: [],
+                    context: "default",
+                }
+            },
+            methods: {
+                SyncChange() {
+                    axios.post(`/metric/${this.context}/put`, this.metricsData).then((res) => {
+                        console.log(res)
+                        ElementPlus.ElMessage({
+                            message: '更新成功',
+                            type: 'success',
+                        })
+                    })
+                },
+                ChangeValue(value) {
+                    this.SyncChange()
+                    console.log(value)
+                },
+                AddLabel(index) {
+                    label = {
+                        "name": "",
+                        "value": "默认"
+                    }
+                    if (this.metricsData[index].labels == null) {
+                        this.metricsData[index].labels = []
+                    }
+                    this.metricsData[index].labels.push(label)
+                },
+                DropLabel(metricIndex, labelIndex) {
+                    this.metricsData[metricIndex].labels.splice(labelIndex, 1)
+                },
+                changeContext(value) {
+                    context = this.context
+                    axios.get(`/metric/${context}/get`).then((res) => {
+                        this.metricsData = res.data
+                        console.log(this.metricsData)
+                    })
+                }
+            },
+            setup() {},
+            created() {
+                // 组件创建完后获取数据，
+                // 此时 data 已经被 observed 了
+                console.log("created")
+                axios.get(`/metric/${this.context}/get`).then((res) => {
+                    this.metricsData = res.data
+                    console.log(this.metricsData)
+                })
+            },
+            mounted() {
+                axios.get("/context/list").then((res) => {
+                    console.log(res.data)
+                    this.contextList = res.data.map((item) => {
+                        return {
+                            value: item,
+                            label: item,
+                        }
+                    })
+                    this.contextList.unshift({
+                        value: "default",
+                        label: "默认",
+                    })
+                })
+            },
+            template: `{[{ template "metrics" .}]}`
+        })
+        app.component("update-metrics", {
+            data() {
+                return {
+                    metricsData: Vue.ref([]),
+                    contextList: [],
+                    metricText: "",
+                    context: "",
+                }
+            },
+            methods: {
+                sync() {
+                    const loading = ElementPlus.ElLoading.service({
+                        lock: true,
+                        text: 'Loading',
+                        background: 'rgba(0, 0, 0, 0.7)',
+                    })
+                    context = this.context
+                    if (context === "默认" || context === "") {
+                        context = "default"
+                    }
+                    axios.post(`/metric/${context}/parse`, {
+                        "text": this.metricText,
+                        "is_reset": true,
+                    }).then((res) => {
+                        loading.close()
+                        console.log(res)
+                        ElementPlus.ElMessageBox.alert(res.data, '导入结果', {
+                            confirmButtonText: 'OK',
+                            dangerouslyUseHTMLString: true,
+                        })
+                    })
+                },
+                changeContext(value) {
+                    context = this.context
+                    axios.get(`/metrics/${context}`).then((res) => {
+                        this.metricText = res.data
+                        console.log(this.metricText)
+                    })
+                },
+                reload() {
+                    context = this.context
+                    axios.get(`/metrics/${context}`).then((res) => {
+                        this.metricText = res.data
+                        console.log(this.metricText)
+                    })
+                }
+            },
+            setup() {},
+            created() {
+                // 组件创建完后获取数据，
+                // 此时 data 已经被 observed 了
+                console.log("created")
+                axios.get(`/metrics/${this.context}`).then((res) => {
+                    this.metricText = res.data
+                    console.log(this.metricText)
+                })
+            },
+            mounted() {
+                axios.get("/context/list").then((res) => {
+                    console.log(res.data)
+                    this.contextList = res.data.map((item) => {
+                        return {
+                            value: item,
+                            label: item,
+                        }
+                    })
+                    this.contextList.unshift({
+                        value: "",
+                        label: "默认",
+                    })
+                })
+            },
+            template: `{[{ template "editor" .}]}`
+        })
+        app.mount("#cc")
+    </script>
+</body>
+
+</html>

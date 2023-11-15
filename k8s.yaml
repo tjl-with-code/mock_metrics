@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fake-metrics
+  namespace: monitoring
+  labels:
+    app: fake-metrics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fake-metrics
+  template:
+    metadata:
+      labels:
+        app: fake-metrics
+    spec:
+      containers:
+        - name: fake-metrics
+          image: tjldockerdemo/fake-metrics
+          ports:
+            - name: metrics
+              containerPort: 8080
+              protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fake-metrics
+  namespace: monitoring
+  labels:
+    app: fake-metrics
+spec:
+  ports:
+    - name: metrics
+      protocol: TCP
+      port: 8080
+      targetPort: metrics
+  selector:
+    app: fake-metrics
+  type: ClusterIP

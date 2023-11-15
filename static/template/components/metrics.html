@@ -1,0 +1,52 @@
+{[{ define "metrics" }]}
+<el-main>
+    Domain:
+    <el-select v-model="context" placeholder="请选择" @change="changeContext">
+        <el-option v-for="item in contextList" :key="item.value" :label="item.label" :value="item.value">
+        </el-option>
+    </el-select>
+    <el-table :data="metricsData" style="width: 100%" row-key="id">
+        <el-table-column type="expand">
+            <template #default="props">
+                <el-row align="middle">
+                    <el-col :span=15 :offset="3">
+                        <el-card class="box-card">
+                            <el-button type="success" @click="AddLabel(props.$index)">新增label</el-button>
+                            <el-table :data="props.row.labels" :strip="true" max-height="300">
+                                <el-table-column type="index"></el-table-column>
+                                <el-table-column label="labelName">
+                                    <template #default="scope">
+                                        <el-input v-model="scope.row.name" placeholder="请输入指标名"></el-input>
+                                    </template>
+        </el-table-column>
+        <el-table-column label="labelValue">
+            <template #default="scope">
+                                        <el-input v-model="scope.row.value" placeholder="请输入指标值"></el-input>
+                                    </template>
+        </el-table-column>
+        <el-table-column label="action" width="100">
+            <template #default="scope">
+                                        <el-button @click="DropLabel(props.$index,scope.$index)" type="danger">删除
+                                        </el-button>
+                                    </template>
+        </el-table-column>
+    </el-table>
+    </el-card>
+    </el-col>
+    </el-row>
+    </template>
+    </el-table-column>
+    <el-table-column label="MetricName" prop="name" />
+    <el-table-column label="MetricValue">
+        <template #default="scope">
+                <el-input v-model="scope.row.value" />
+            </template>
+    </el-table-column>>
+    <el-table-column label="action">
+        <template #default="scope">
+                <el-button @click="ChangeValue(scope.row.name)" type="primary">应用修改</el-button>
+            </template>
+    </el-table-column>
+    </el-table>
+</el-main>
+{[{ end }]}

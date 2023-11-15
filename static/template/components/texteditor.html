@@ -1,0 +1,29 @@
+{[{ define "editor" }]}
+<el-main>
+    <div style="margin-bottom: 10px;">
+        Domain:
+        <el-select v-model="context" placeholder="请选择" @change="changeContext">
+            <el-option v-for="item in contextList" :key="item.value" :label="item.label" :value="item.value">
+            </el-option>
+        </el-select>
+    </div>
+    <el-row>
+        <el-input v-model="metricText" :autosize="{ minRows: 10, maxRows: 20 }" type="textarea" placeholder="请输入指标">
+        </el-input>
+    </el-row>
+    <el-row type="flex" justify="end">
+        <el-col :span="2">
+            <div style="margin-top: 10px;">
+                <el-button type="success" @click="sync">update</el-button>
+            </div>
+        </el-col>
+        <el-col :span="2">
+            <div style="margin-top: 10px;">
+                <el-button type="success" @click="reload">reload</el-button>
+            </div>
+        </el-col>
+    </el-row>
+
+
+</el-main>
+{[{ end }]}
